@@ -1,26 +1,55 @@
 @import "tailwindcss";
 
+/* 1. Define the custom font using only your .ttf file */
+@font-face {
+  font-family: 'Espada';
+  /* Make sure this path is exactly where your file is. 
+     If it's in app/font/arrancaran.ttf, this path is correct. */
+  src: url('../app/font/Arrancar.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* 2. Map it to Tailwind v4 variables */
+@theme {
+  --font-espada: "Espada", ui-sans-serif, system-ui;
+  --font-sans: var(--font-espada);
+
+  --animate-meteor-effect: meteor 5s linear infinite;
+
+  @keyframes meteor {
+    0% {
+      transform: rotate(215deg) translateX(0);
+      opacity: 1;
+    }
+
+    70% {
+      opacity: 1;
+    }
+
+    100% {
+      transform: rotate(215deg) translateX(-1000px);
+      opacity: 0;
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #030303;
     --foreground: #ededed;
   }
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Ensuring the body uses the custom font variable */
+  font-family: var(--font-espada);
 }
