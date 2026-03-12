@@ -33,7 +33,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden bg-white text-neutral-900">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden text-neutral-900">
       {/* MAGIC UI STYLE FLOWING BACKGROUND */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-white">
         {/* The "Smoke" layer: Add a blurred, moving mesh */}
@@ -44,8 +44,10 @@ export default function Home() {
 
         {/* The Magic UI Noise/Grain */}
         <div className="absolute inset-0 opacity-[0.04] [mask-image:radial-gradient(ellipse_at_center,white,transparent)] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      </div>
 
-        {/* Meteors Overlay */}
+      {/* Meteors Overlay (Now on top of everything) */}
+      <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
         <Meteors number={20} className="before:from-amber-200" />
       </div>
 
