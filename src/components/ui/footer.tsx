@@ -32,10 +32,10 @@ export const Footer = () => {
                 <div className="flex flex-col gap-4">
                     <h4 className="font-semibold text-neutral-900">Product</h4>
                     <ul className="flex flex-col gap-2 text-sm text-neutral-500">
-                        <li><Link href="#" className="hover:text-amber-500">Live Audit</Link></li>
-                        <li><Link href="#" className="hover:text-amber-500">Keyword Tracker</Link></li>
-                        <li><Link href="#" className="hover:text-amber-500">Backlink Analysis</Link></li>
-                        <li><Link href="#" className="hover:text-amber-500">API Access</Link></li>
+                        <li><Link href="/Audit" className="hover:text-amber-500">Live Audit</Link></li>
+                        <li><Link href="/Keyword" className="hover:text-amber-500">Keyword Tracker</Link></li>
+                        <li><Link href="/Backlink" className="hover:text-amber-500">Backlink Analysis</Link></li>
+                        <li><Link href="Api" className="hover:text-amber-500">API Access</Link></li>
                     </ul>
                 </div>
 
@@ -43,10 +43,10 @@ export const Footer = () => {
                 <div className="flex flex-col gap-4">
                     <h4 className="font-semibold text-neutral-900">Company</h4>
                     <ul className="flex flex-col gap-2 text-sm text-neutral-500">
-                        <li><Link href="#" className="hover:text-amber-500">About Us</Link></li>
-                        <li><Link href="#" className="hover:text-amber-500">Careers</Link></li>
-                        <li><Link href="#" className="hover:text-amber-500">Privacy Policy</Link></li>
-                        <li><Link href="#" className="hover:text-amber-500">Terms of Service</Link></li>
+                        <li><Link href="/About" className="hover:text-amber-500">About Us</Link></li>
+                        <li><Link href="/Careers" className="hover:text-amber-500">Careers</Link></li>
+                        <li><Link href="/Privacy" className="hover:text-amber-500">Privacy Policy</Link></li>
+                        <li><Link href="/Terms" className="hover:text-amber-500">Terms of Service</Link></li>
                     </ul>
                 </div>
 
