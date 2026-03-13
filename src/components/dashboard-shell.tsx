@@ -149,9 +149,28 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 </header>
 
                 {/* Body */}
-                <main className="flex-1">
+                <main className="flex-1 pb-24 lg:pb-0">
                     {children}
                 </main>
+
+                {/* Mobile Bottom Nav */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-[#0c0b08] to-transparent pointer-events-none">
+                    <nav className="bg-[#12110e]/95 backdrop-blur-xl border border-white/[0.08] rounded-[2rem] p-2 flex items-center justify-around shadow-2xl pointer-events-auto">
+                        {navItems.map(item => (
+                            <Link
+                                key={item.id}
+                                href={item.link}
+                                className={`flex flex-col items-center gap-1.5 px-5 py-3 rounded-2xl transition-all ${pathname === item.link
+                                    ? "text-[#c9962a] bg-[#c9962a]/10"
+                                    : "text-white/30 hover:text-white/60"
+                                    }`}
+                            >
+                                <span className="text-[14px]">{item.icon}</span>
+                                <span className="text-[9px] font-bold uppercase tracking-wider">{item.label}</span>
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
             </div>
         </div>
     );

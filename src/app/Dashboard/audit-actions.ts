@@ -58,17 +58,34 @@ export async function runAudit(websiteId: string, domain: string) {
             pages_found: discoveredPages.length
         }
 
-        // Extract Issues/Opportunities (Top 5)
-        const opportunities = Object.values(audits)
-            .filter((audit: any) => audit.details?.type === 'opportunity' && audit.score < 1)
-            .sort((a: any, b: any) => (b.details?.overallSavingsMs || 0) - (a.details?.overallSavingsMs || 0))
-            .slice(0, 5)
+        // Extract Issues/Opportunities (More robust selection)
+        const allAudits = Object.values(lighthouse.audits)
+        const extractedIssues = allAudits
+            .filter((audit: any) =>
+                audit.score !== null &&
+                audit.score < 0.9 &&
+                audit.title &&
+                audit.description &&
+                !audit.id.includes('manual') // Skip manual checks
+            )
+            .sort((a: any, b: any) => (a.score || 0) - (b.score || 0))
+            .slice(0, 10)
             .map((audit: any) => ({
                 id: audit.id,
                 title: audit.title,
                 level: audit.score < 0.5 ? 'high' : 'medium',
                 description: audit.description
             }))
+
+        // Fallback if no issues found but scores aren't perfect
+        if (extractedIssues.length === 0 && (scores.seo < 100 || scores.performance < 100)) {
+            extractedIssues.push({
+                id: 'generic-optimization',
+                title: 'General SEO Optimization',
+                level: 'medium',
+                description: 'We suggest a deep dive into your content structure to improve visibility.'
+            })
+        }
 
         // 3. Save Audit to Database
         const { data: auditRecord, error: auditError } = await supabase
@@ -79,28 +96,52 @@ export async function runAudit(websiteId: string, domain: string) {
                 score_seo: scores.seo,
                 score_accessibility: scores.accessibility,
                 score_best_practices: scores.best_practices,
-                raw_data: { metrics, lighthouse_summary: lighthouse.timing, discovered_pages: discoveredPages }
+                raw_data: {
+                    metrics,
+                    lighthouse_summary: lighthouse.timing,
+                    discovered_pages: discoveredPages,
+                    issues: extractedIssues // SAVE ISSUES IN RAW_DATA AS FAILSAFE
+                }
             }])
             .select()
             .single()
 
-        if (auditError) throw auditError
+        if (auditError) {
+            console.error('Audit Record Insert Error:', auditError)
+            throw auditError
+        }
 
-        // 3. Save Issues to Database
-        if (opportunities.length > 0) {
-            const { data: { user } } = await supabase.auth.getUser()
-            const issuesToInsert = opportunities.map(opt => ({
-                audit_id: auditRecord.id,
-                level: opt.level,
-                text: opt.title,
-                fix_recommendation: opt.description,
-                resolved: false
-            }))
-            await supabase.from('issues').insert(issuesToInsert)
+        // 4. Save Issues to Database (Secondary - failsafed)
+        if (extractedIssues.length > 0) {
+            try {
+                // Try text column (standard)
+                const issuesToInsert = extractedIssues.map(opt => ({
+                    audit_id: auditRecord.id,
+                    level: opt.level,
+                    text: opt.title,
+                    resolved: false
+                }))
+
+                const { error: issuesError } = await supabase.from('issues').insert(issuesToInsert)
+
+                // If it fails due to column name, try title column
+                if (issuesError && issuesError.code === 'PGRST204') {
+                    const fallbackIssues = extractedIssues.map(opt => ({
+                        audit_id: auditRecord.id,
+                        level: opt.level,
+                        title: opt.title,
+                        resolved: false
+                    }))
+                    await supabase.from('issues').insert(fallbackIssues)
+                }
+            } catch (err) {
+                // Silently fail - issues are already in raw_data for safety
+                console.warn('Issues table insertion failed, using raw_data fallback.')
+            }
         }
 
         revalidatePath('/Dashboard')
-        return { success: true, scores, metrics, issues: opportunities }
+        return { success: true, scores, metrics, issues: extractedIssues }
 
     } catch (error: any) {
         console.error('Audit failed:', error)
