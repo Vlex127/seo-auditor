@@ -51,7 +51,7 @@ export async function signInWithOAuth(provider: 'google' | 'github') {
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-            redirectTo: `${origin}/auth/callback?next=/Dashboard`,
+            redirectTo: `${origin}/auth/callback?next=/Pricing`,
         },
     })
 
