@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { Meteors } from "@/components/ui/meteors";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { logout } from "@/app/auth/actions";
+import { logout, selectPlan } from "@/app/auth/actions";
 import Link from "next/link";
 
 export default function Pricing() {
@@ -16,8 +16,32 @@ export default function Pricing() {
 
     useEffect(() => {
         const supabase = createClient();
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            setUser(user);
+        supabase.auth.getUser().then(async ({ data: { user } }) => {
+            if (user) {
+                setUser(user);
+
+                // Check if user already has a plan (other than the default 'free' set by DB)
+                // If they have any plan set, we might want to skip this on login, 
+                // but usually, on FIRST signup we want them to click a plan.
+                // We'll check the profile.
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('plan')
+                    .eq('id', user.id)
+                    .single();
+
+                // If they have already selected a plan (not null and not 'free' if that's the default they just got)
+                // However, user said "pricing screen will never show again when a user logs in"
+                // So if we find a profile, they have been through here or signed up.
+                // Let's check for a flag or if plan is already set.
+                if (profile && profile.plan) {
+                    // Since we want them to land here on FIRST signup, 
+                    // but skip on subsequent logins.
+                    // The login action redirects to /Dashboard.
+                    // The callback redirects to /Pricing.
+                    // So /Pricing is exclusively for onboarding or manual visits.
+                }
+            }
         });
     }, []);
 
@@ -50,21 +74,24 @@ export default function Pricing() {
             price: "$0",
             features: ["1 Website Scan", "Basic Insights", "Weekly Reports", "Email Support"],
             cta: "Start Free",
-            popular: false
+            popular: false,
+            id: 'free'
         },
         {
             name: "Professional",
             price: "$49",
             features: ["10 Website Scans", "Deep AI Analysis", "Daily Tracking", "Priority Support", "Competitor Intel"],
             cta: "Go Pro",
-            popular: true
+            popular: true,
+            id: 'pro'
         },
         {
             name: "Enterprise",
             price: "Custom",
             features: ["Unlimited Scans", "API Access", "Custom Dashboards", "24/7 Dedicated Support", "White-labeling"],
             cta: "Contact Sales",
-            popular: false
+            popular: false,
+            id: 'enterprise'
         }
     ];
 
@@ -87,14 +114,14 @@ export default function Pricing() {
 
             <section className="container relative z-10 py-32 px-4">
                 <div className="mb-16 text-center">
-                    <motion.h1 
+                    <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-4xl font-bold text-neutral-900 md:text-6xl"
                     >
                         Choose Your Plan
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
@@ -131,12 +158,12 @@ export default function Pricing() {
                                     </li>
                                 ))}
                             </ul>
-                            <Link 
-                                href="/Dashboard"
+                            <button
+                                onClick={() => selectPlan(plan.id as any)}
                                 className={`mt-10 rounded-2xl py-4 font-bold text-center transition-all active:scale-95 ${plan.popular ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-white hover:opacity-90 shadow-lg shadow-amber-200/50" : "border border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50"}`}
                             >
                                 {plan.cta}
-                            </Link>
+                            </button>
                         </motion.div>
                     ))}
                 </div>
@@ -144,7 +171,7 @@ export default function Pricing() {
 
             {user && (
                 <div className="fixed bottom-10 right-10 z-50">
-                    <button 
+                    <button
                         onClick={() => logout()}
                         className="rounded-full bg-white/80 hover:bg-white text-neutral-900 px-6 py-2.5 shadow-lg border border-neutral-200 font-bold backdrop-blur-md transition-all active:scale-95"
                     >

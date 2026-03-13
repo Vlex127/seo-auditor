@@ -69,3 +69,28 @@ export async function logout() {
     await supabase.auth.signOut()
     redirect('/login')
 }
+
+export async function selectPlan(plan: 'free' | 'pro' | 'enterprise') {
+    const supabase = await createClient()
+
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        redirect('/login')
+    }
+
+    // Update the user's plan in the profiles table
+    const { error } = await supabase
+        .from('profiles')
+        .update({ plan })
+        .eq('id', user.id)
+
+    if (error) {
+        console.error('Error updating plan:', error.message)
+        // Even if profiling fails, we might want to continue or show an error
+    }
+
+    // After selecting a plan, redirect to the dashboard
+    redirect('/Dashboard')
+}
