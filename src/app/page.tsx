@@ -6,6 +6,7 @@ import { FaHome, FaChartBar, FaSearch, FaCog } from "react-icons/fa";
 import { Footer } from "@/components/ui/footer";
 import { motion } from "framer-motion";
 import { Meteors } from "@/components/ui/meteors";
+import Link from "next/link";
 
 export default function Home() {
 
@@ -267,12 +268,18 @@ export default function Home() {
             Join 10,000+ marketers and business owners who use SEO-Auditor to stay ahead of the curve.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <button className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 px-8 py-4 font-bold text-white transition-all hover:opacity-90 active:scale-95 shadow-lg shadow-amber-200/50">
+            <Link
+              href="/login"
+              className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 px-8 py-4 font-bold text-white transition-all hover:opacity-90 active:scale-95 shadow-lg shadow-amber-200/50"
+            >
               Get Started for Free
-            </button>
-            <button className="rounded-2xl border border-amber-200 bg-white px-8 py-4 font-bold text-amber-600 transition-all hover:bg-neutral-50 active:scale-95">
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-2xl border border-amber-200 bg-white px-8 py-4 font-bold text-amber-600 transition-all hover:bg-neutral-50 active:scale-95"
+            >
               Schedule a Demo
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -330,9 +337,12 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <button className={`mt-10 rounded-2xl py-4 font-bold transition-all active:scale-95 ${plan.popular ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-white hover:opacity-90 shadow-lg shadow-amber-200/50" : "border border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50"}`}>
+              <Link
+                href="/login"
+                className={`mt-10 rounded-2xl py-4 font-bold text-center transition-all active:scale-95 ${plan.popular ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-white hover:opacity-90 shadow-lg shadow-amber-200/40" : "border border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50"}`}
+              >
                 {plan.cta}
-              </button>
+              </Link>
             </div>
           ))}
         </div>

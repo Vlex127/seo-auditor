@@ -56,7 +56,9 @@ export default function SignupPage() {
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div className="flex w-full flex-col justify-center items-center lg:items-end lg:pr-10">
             <div className="w-full max-w-sm">
-              <SignupForm />
+              <React.Suspense fallback={<div className="h-64 w-full animate-pulse bg-neutral-100 rounded-2xl" />}>
+                <SignupForm />
+              </React.Suspense>
             </div>
           </div>
           <div className="hidden lg:flex w-full justify-start lg:pl-4 xl:pl-10">

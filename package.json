@@ -12,6 +12,8 @@
     "@heroui/navbar": "^2.2.30",
     "@heroui/system": "^2.4.28",
     "@heroui/theme": "^2.4.26",
+    "@supabase/ssr": "^0.9.0",
+    "@supabase/supabase-js": "^2.99.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.35.2",

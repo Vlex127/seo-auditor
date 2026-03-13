@@ -1,88 +1,185 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-export const DashboardMockup = () => {
+const issues = [
+    { dot: "bg-red-400", text: "Missing meta descriptions on 8 pages", tag: "High", tagColor: "bg-red-400/10 text-red-400", blur: false },
+    { dot: "bg-amber-400", text: "Images missing alt attributes (23 found)", tag: "Medium", tagColor: "bg-amber-400/10 text-amber-400", blur: false },
+    { dot: "bg-green-400", text: "H1 tag hierarchy inconsistent across blog posts", tag: "Low", tagColor: "bg-green-400/10 text-green-400", blur: false },
+    { dot: "bg-red-400", text: "Broken internal links detected on homepage", tag: "High", tagColor: "bg-red-400/10 text-red-400", blur: true, opacity: "opacity-35" },
+    { dot: "bg-amber-400", text: "Core Web Vitals: LCP above 2.5s threshold", tag: "Medium", tagColor: "bg-amber-400/10 text-amber-400", blur: true, opacity: "opacity-15" },
+];
+
+const metrics = [
+    { label: "Performance", value: 98, bar: "from-green-400 to-green-500", chip: "Good", chipColor: "bg-green-400/10 text-green-400" },
+    { label: "SEO Score", value: 85, bar: "from-amber-400 to-orange-500", chip: "Needs Work", chipColor: "bg-amber-400/10 text-amber-400" },
+    { label: "Best Practices", value: 100, bar: "from-sky-400 to-blue-500", chip: "Perfect", chipColor: "bg-sky-400/10 text-sky-400" },
+];
+
+export const DashboardMockup = ({ isMockup = true }: { isMockup?: boolean }) => {
     return (
-        <div className="relative w-full max-w-2xl overflow-hidden rounded-[2.5rem] border border-amber-100 bg-white p-2 shadow-[0_32px_64px_-12px_rgba(251,191,36,0.15)] flex-shrink-0 hidden lg:block select-none pointer-events-none">
-            <div className="absolute -left-20 -top-20 h-64 w-64 bg-yellow-200/40 blur-[100px]" />
-            <div className="relative h-full w-full overflow-hidden rounded-[2rem] bg-neutral-50/50 p-6 md:p-8 shadow-inner border border-neutral-100">
-                <div className="mb-12 flex flex-col xl:flex-row xl:items-end justify-between text-left gap-6 xl:gap-0">
-                    <div>
-                        <span className="mb-2 inline-block rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 border border-amber-200/50">
-                            Live Analysis
-                        </span>
-                        <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-neutral-900">Audit Overview</h3>
-                        <p className="font-mono text-xs md:text-sm text-neutral-500">https://example-website.com</p>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <div className="relative flex h-16 w-16 md:h-20 md:w-20 items-center justify-center">
-                            <svg className="absolute h-full w-full -rotate-90">
-                                <circle cx="50%" cy="50%" r="36" fill="none" stroke="currentColor" strokeWidth="6" className="text-neutral-200 scale-75 md:scale-100 origin-center" />
-                                <circle cx="50%" cy="50%" r="36" fill="none" stroke="currentColor" strokeWidth="6" strokeDasharray="226" strokeDashoffset="22.6" className="text-amber-400 scale-75 md:scale-100 origin-center" strokeLinecap="round" />
+        <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className={cn(
+                "relative w-full max-w-2xl flex-shrink-0 select-none",
+                isMockup ? "hidden lg:block pointer-events-none" : "block"
+            )}
+        >
+            {/* Outer glow */}
+            <div className="absolute -inset-4 rounded-[2.5rem] bg-amber-500/10 blur-2xl pointer-events-none" />
+
+            {/* Shell */}
+            <div className="relative rounded-[2rem] bg-[#0f0f11] overflow-hidden border border-white/[0.07] shadow-2xl">
+
+                {/* Top Bar */}
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07]">
+                    {/* Logo */}
+                    <div className="flex items-center gap-2">
+                        <div className="w-[22px] h-[22px] rounded-[6px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
+                            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                                <circle cx="5" cy="5" r="3.5" stroke="#fff" strokeWidth="1.5" />
+                                <line x1="7.6" y1="7.6" x2="11" y2="11" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
                             </svg>
-                            <span className="text-xl md:text-2xl font-bold text-neutral-900">92</span>
                         </div>
-                        <div className="space-y-1 text-left">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Global Rank</p>
-                            <p className="text-lg md:text-xl font-medium text-amber-500">Excellent</p>
-                        </div>
+                        <span className="text-[13px] font-semibold text-white tracking-tight">SEO-Auditor</span>
                     </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    {[
-                        { label: "Performance", value: 98, status: "Good", color: "bg-amber-400" },
-                        { label: "SEO Score", value: 85, status: "Needs Work", color: "bg-yellow-400" },
-                        { label: "Best Practices", value: 100, status: "Perfect", color: "bg-amber-500" },
-                    ].map((card, i) => (
-                        <div
-                            key={i}
-                            className="relative overflow-hidden rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm text-left"
-                        >
-                            <p className="text-xs font-medium text-neutral-500">{card.label}</p>
-                            <div className="mt-3 flex items-baseline justify-between">
-                                <h4 className="text-2xl md:text-3xl font-bold tracking-tighter text-neutral-900">{card.value}%</h4>
-                            </div>
-                            <div className="mt-6 h-1 w-full rounded-full bg-neutral-100">
-                                <div className={`h-full rounded-full ${card.color} w-3/4`} />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <div className="mt-8 flex flex-col md:flex-row items-start md:items-center gap-6 rounded-2xl border border-amber-200/50 bg-amber-50/50 p-6 shadow-sm text-left backdrop-blur-md">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-400 text-2xl text-white shadow-md shadow-amber-200/50">✨</div>
-                    <div>
-                        <h4 className="text-sm font-bold text-amber-700">Critical Insights Found</h4>
-                        <p className="mt-1 text-xs md:text-sm leading-relaxed text-neutral-600">
-                            We found <span className="font-semibold text-neutral-900">12 structural issues</span>.
-                            Fixing these could boost visibility.
-                        </p>
+
+                    {/* Nav */}
+                    <div className="flex gap-1">
+                        {["Overview", "Audit", "Keywords", "Backlinks"].map((item) => (
+                            <span
+                                key={item}
+                                className={`text-[11px] px-2.5 py-1 rounded-md transition-colors ${item === "Audit"
+                                    ? "text-white/85 bg-white/[0.07]"
+                                    : "text-white/35"
+                                    }`}
+                            >
+                                {item}
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* Avatar */}
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[11px] font-semibold text-white">
+                        VI
                     </div>
                 </div>
 
-                {/* Extra Faded Data Row Mockups */}
-                <div className="mt-6 grid grid-cols-1 gap-4 opacity-40 blur-[2px]">
-                    <div className="h-14 w-full rounded-xl bg-neutral-100 border border-neutral-200 flex items-center px-4">
-                        <div className="h-3 w-1/3 bg-neutral-300 rounded" />
-                        <div className="ml-auto h-3 w-12 bg-neutral-300 rounded" />
+                {/* Body */}
+                <div className="p-6">
+
+                    {/* URL Row */}
+                    <div className="flex items-center gap-2.5 mb-5">
+                        <div className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3.5 py-2 font-mono text-[11px] text-white/45">
+                            https://example-website.com
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-green-400 uppercase tracking-wide">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                            Live
+                        </div>
+                        <button className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] font-semibold px-4 py-2 rounded-lg">
+                            Re-scan
+                        </button>
                     </div>
-                    <div className="h-14 w-full rounded-xl bg-neutral-100 border border-neutral-200 flex items-center px-4">
-                        <div className="h-3 w-1/4 bg-neutral-300 rounded" />
-                        <div className="ml-auto h-3 w-12 bg-neutral-300 rounded" />
+
+                    {/* Score + Metrics Row */}
+                    <div className="grid grid-cols-[auto_1fr] gap-4 mb-4">
+
+                        {/* Big Score Ring */}
+                        <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 flex flex-col items-center justify-center min-w-[110px]">
+                            <div className="relative w-20 h-20 mb-2.5">
+                                <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
+                                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="6" />
+                                    <circle
+                                        cx="40" cy="40" r="32" fill="none"
+                                        stroke="url(#scoreGrad)" strokeWidth="6"
+                                        strokeDasharray="201" strokeDashoffset="20"
+                                        strokeLinecap="round"
+                                    />
+                                    <defs>
+                                        <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#f5a623" />
+                                            <stop offset="100%" stopColor="#e8471e" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center text-[26px] font-semibold text-white">
+                                    92
+                                </div>
+                            </div>
+                            <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-400">
+                                Overall Score
+                            </span>
+                        </div>
+
+                        {/* Metric Cards */}
+                        <div className="grid grid-cols-3 gap-2">
+                            {metrics.map((m) => (
+                                <div key={m.label} className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-3.5">
+                                    <p className="text-[10px] uppercase tracking-wide text-white/40 mb-2">{m.label}</p>
+                                    <p className="text-[22px] font-semibold text-white mb-1.5">{m.value}%</p>
+                                    <div className="h-[3px] w-full bg-white/[0.07] rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full bg-gradient-to-r ${m.bar}`}
+                                            style={{ width: `${m.value}%` }}
+                                        />
+                                    </div>
+                                    <span className={`mt-2 inline-block text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${m.chipColor}`}>
+                                        {m.chip}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    <div className="h-14 w-full rounded-xl bg-neutral-100 border border-neutral-200 flex items-center px-4">
-                        <div className="h-3 w-2/5 bg-neutral-300 rounded" />
-                        <div className="ml-auto h-3 w-12 bg-neutral-300 rounded" />
+
+                    {/* Insights Banner */}
+                    <div className="flex items-start gap-3 bg-amber-400/[0.06] border border-amber-400/20 rounded-xl p-3.5 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-amber-400/15 flex items-center justify-center flex-shrink-0">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M7 1L8.5 5.5H13L9.5 8L10.5 13L7 10.5L3.5 13L4.5 8L1 5.5H5.5L7 1Z" fill="#f5a623" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p className="text-[11px] font-semibold text-amber-400 mb-0.5">Critical insights found</p>
+                            <p className="text-[11px] text-white/45 leading-relaxed">
+                                We found <span className="text-white/80 font-medium">12 structural issues</span>.
+                                Fixing these could boost your visibility by{" "}
+                                <span className="text-white/80 font-medium">24%</span> this month.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Issues List */}
+                    <div className="flex flex-col gap-1.5">
+                        {issues.map((issue, i) => (
+                            <div
+                                key={i}
+                                className={`flex items-center gap-2.5 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2.5 ${issue.opacity ?? ""}`}
+                                style={issue.blur ? { filter: `blur(${i === 3 ? 1.5 : 2}px)` } : undefined}
+                            >
+                                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${issue.dot}`} />
+                                <span className="flex-1 text-[11px] text-white/55">{issue.text}</span>
+                                <span className={`text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${issue.tagColor}`}>
+                                    {issue.tag}
+                                </span>
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
 
-            {/* Fade out mask */}
-            <div className="absolute inset-x-0 bottom-0 z-20 h-48 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center pb-8 border-b-[6px] border-white">
-                <span className="rounded-full border border-amber-200 bg-amber-50/90 px-6 py-2.5 text-sm font-bold text-amber-600 shadow-xl shadow-amber-900/5 backdrop-blur-md pb-[-10px]">
-                    Sign in/up to unveil remaining insights
-                </span>
+                {/* Fade + Unlock CTA */}
+                {isMockup && (
+                    <div className="relative -mt-14 h-24 bg-gradient-to-t from-[#0f0f11] via-[#0f0f11]/80 to-transparent flex items-end justify-center pb-5">
+                        <span className="bg-amber-400/10 border border-amber-400/30 rounded-full px-5 py-2 text-[11px] font-semibold text-amber-400 backdrop-blur-md">
+                            Sign in to unlock all 12 insights
+                        </span>
+                    </div>
+                )}
+
             </div>
-        </div>
+        </motion.div>
     );
 };
