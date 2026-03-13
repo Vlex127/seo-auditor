@@ -29,8 +29,9 @@ export async function signup(formData: FormData) {
         password: formData.get('password') as string,
     }
 
-    const host = (await headers()).get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const allHeaders = await headers()
+    const host = allHeaders.get('x-forwarded-host') || allHeaders.get('host')
+    const protocol = allHeaders.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https')
     const origin = `${protocol}://${host}`
 
     const { error } = await supabase.auth.signUp({
@@ -49,8 +50,9 @@ export async function signup(formData: FormData) {
 
 export async function signInWithOAuth(provider: 'google' | 'github') {
     const supabase = await createClient()
-    const host = (await headers()).get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const allHeaders = await headers()
+    const host = allHeaders.get('x-forwarded-host') || allHeaders.get('host')
+    const protocol = allHeaders.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https')
     const origin = `${protocol}://${host}`
 
     const { data, error } = await supabase.auth.signInWithOAuth({

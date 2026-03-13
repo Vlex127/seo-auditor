@@ -12,11 +12,13 @@ import {
     FaGlobe,
     FaArrowLeft,
     FaSignOutAlt,
-    FaCheckCircle
+    FaCheckCircle,
+    FaExclamationTriangle
 } from "react-icons/fa";
 import Link from "next/link";
 import { logout } from "@/app/auth/actions";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { updateGSCConnection, disconnectGSC } from "./actions";
 
 export default function Settings() {
     const [user, setUser] = useState<User | null>(null);
@@ -27,6 +29,9 @@ export default function Settings() {
         supabase.auth.getUser().then(async ({ data: { user } }) => {
             if (user) {
                 setUser(user);
+                // Load persistent setting from metadata
+                setGscConnected(!!user.user_metadata?.gsc_connected);
+
                 const { data } = await supabase
                     .from('profiles')
                     .select('*')
@@ -49,13 +54,23 @@ export default function Settings() {
     const [isConnectingGSC, setIsConnectingGSC] = useState(false);
     const [gscConnected, setGscConnected] = useState(false);
 
-    const handleConnectGSC = () => {
+    const handleConnectGSC = async () => {
         setIsConnectingGSC(true);
-        // Simulate OAuth flow
-        setTimeout(() => {
-            setGscConnected(true);
+        // Simulate OAuth flow then save to DB
+        setTimeout(async () => {
+            const res = await updateGSCConnection(true);
+            if (!res.error) {
+                setGscConnected(true);
+            }
             setIsConnectingGSC(false);
         }, 2000);
+    };
+
+    const handleDisconnectGSC = async () => {
+        const res = await disconnectGSC();
+        if (!res.error) {
+            setGscConnected(false);
+        }
     };
 
     return (
@@ -206,7 +221,12 @@ export default function Settings() {
                                                         <FaCheckCircle className="text-green-400 text-xs" />
                                                         <span className="text-[11px] font-bold text-green-400 uppercase tracking-widest">Connected</span>
                                                     </div>
-                                                    <button className="text-white/20 hover:text-red-400 text-[11px] font-bold transition-colors">Disconnect</button>
+                                                    <button
+                                                        onClick={handleDisconnectGSC}
+                                                        className="text-white/20 hover:text-red-400 text-[11px] font-bold transition-colors"
+                                                    >
+                                                        Disconnect
+                                                    </button>
                                                 </div>
                                             ) : (
                                                 <button

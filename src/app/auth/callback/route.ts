@@ -17,16 +17,15 @@ export async function GET(request: Request) {
 
         if (!error) {
             console.log("Auth callback successful, redirecting to:", next)
-            const forwardedHost = request.headers.get('x-forwarded-host')
-            const isLocalEnv = process.env.NODE_ENV === 'development'
 
-            if (isLocalEnv) {
-                return NextResponse.redirect(`${origin}${next}`)
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`)
-            } else {
-                return NextResponse.redirect(`${origin}${next}`)
-            }
+            // In hosted environments, we want to ensure we redirect to the correct public URL
+            // We'll use the origin from the request, but ensure HTTPS if not local
+            const isLocal = request.url.includes('localhost')
+            const protocol = isLocal ? 'http' : 'https'
+            const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || origin.split('://')[1]
+
+            const redirectUrl = new URL(next, `${protocol}://${host}`)
+            return NextResponse.redirect(redirectUrl.toString())
         } else {
             console.error("Auth callback error:", error.message)
         }
