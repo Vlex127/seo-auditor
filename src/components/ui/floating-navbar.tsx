@@ -25,11 +25,20 @@ export const FloatingNav = ({
   const { scrollYProgress } = useScroll();
   const [visible, setVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   React.useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (user) {
+        setUser(user);
+        const { data } = await supabase
+          .from("profiles")
+          .select("avatar_url")
+          .eq("id", user.id)
+          .single();
+        if (data) setAvatarUrl(data.avatar_url);
+      }
     });
   }, []);
 
@@ -100,8 +109,11 @@ export const FloatingNav = ({
           {/* CTA Button */}
           <Link
             href={user ? "/Dashboard" : "/login"}
-            className="relative rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-neutral-800 hover:shadow-lg hover:shadow-neutral-900/20 dark:bg-white dark:text-black dark:hover:bg-neutral-100 dark:hover:shadow-white/20"
+            className="flex items-center gap-2 relative rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-neutral-800 hover:shadow-lg hover:shadow-neutral-900/20 dark:bg-white dark:text-black dark:hover:bg-neutral-100 dark:hover:shadow-white/20"
           >
+            {user && avatarUrl && (
+              <img src={avatarUrl} alt="Avatar" className="w-5 h-5 rounded-full object-cover" />
+            )}
             <span>{user ? "Dashboard" : "Login"}</span>
           </Link>
         </div>

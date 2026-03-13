@@ -1,1 +1,1 @@
-what abt everytime i tap login or try to go to the login page i shold get redirected to dashboard cuz of caching etc.. 
+check from db  if a uer has avatar_url filled or nullif filled use that as avatar if null use first letter of name

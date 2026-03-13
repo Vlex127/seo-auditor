@@ -3,8 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
+    console.log("Auth callback URL received:", request.url)
     const code = searchParams.get('code')
-    const next = searchParams.get('next') ?? '/'
+
+    // Explicitly check for next, but default to /Pricing for onboarding
+    // This ensures that if things get stripped, we still send them to the plan select screen
+    let next = searchParams.get('next') ?? '/Pricing'
+    if (next === '/') next = '/Pricing'
 
     if (code) {
         const supabase = await createClient()

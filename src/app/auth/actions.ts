@@ -29,11 +29,14 @@ export async function signup(formData: FormData) {
         password: formData.get('password') as string,
     }
 
-    const origin = (await headers()).get('origin')
+    const host = (await headers()).get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const origin = `${protocol}://${host}`
+
     const { error } = await supabase.auth.signUp({
         ...data,
         options: {
-            emailRedirectTo: `${origin}/auth/callback?next=/Pricing`,
+            emailRedirectTo: `${origin}/auth/callback?next=%2FPricing`,
         },
     })
 
@@ -46,12 +49,14 @@ export async function signup(formData: FormData) {
 
 export async function signInWithOAuth(provider: 'google' | 'github') {
     const supabase = await createClient()
-    const origin = (await headers()).get('origin')
+    const host = (await headers()).get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const origin = `${protocol}://${host}`
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-            redirectTo: `${origin}/auth/callback?next=/Pricing`,
+            redirectTo: `${origin}/auth/callback?next=%2FPricing`,
         },
     })
 
