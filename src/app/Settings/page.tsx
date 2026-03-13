@@ -11,7 +11,8 @@ import {
     FaBell,
     FaGlobe,
     FaArrowLeft,
-    FaSignOutAlt
+    FaSignOutAlt,
+    FaCheckCircle
 } from "react-icons/fa";
 import Link from "next/link";
 import { logout } from "@/app/auth/actions";
@@ -38,10 +39,24 @@ export default function Settings() {
 
     const sections = [
         { id: 'account', label: 'Account', icon: <FaUser /> },
+        { id: 'integrations', label: 'Integrations', icon: <FaGlobe /> },
         { id: 'security', label: 'Security', icon: <FaShieldAlt /> },
         { id: 'billing', label: 'Billing', icon: <FaCreditCard /> },
         { id: 'notifications', label: 'Notifications', icon: <FaBell /> },
     ];
+
+    const [activeSection, setActiveSection] = useState('account');
+    const [isConnectingGSC, setIsConnectingGSC] = useState(false);
+    const [gscConnected, setGscConnected] = useState(false);
+
+    const handleConnectGSC = () => {
+        setIsConnectingGSC(true);
+        // Simulate OAuth flow
+        setTimeout(() => {
+            setGscConnected(true);
+            setIsConnectingGSC(false);
+        }, 2000);
+    };
 
     return (
         <DashboardShell>
@@ -62,7 +77,8 @@ export default function Settings() {
                         {sections.map(section => (
                             <button
                                 key={section.id}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left ${section.id === 'account'
+                                onClick={() => setActiveSection(section.id)}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left ${activeSection === section.id
                                     ? "bg-[#c9962a]/10 text-[#c9962a] border border-[#c9962a]/20"
                                     : "text-white/30 hover:text-white/60 hover:bg-white/[0.04]"
                                     }`}
@@ -75,85 +91,146 @@ export default function Settings() {
 
                     {/* Content Area */}
                     <div className="space-y-8">
-                        {/* Profile Card */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white/[0.02] border border-white/[0.08] rounded-[2rem] overflow-hidden"
-                        >
-                            <div className="px-8 py-6 border-b border-white/[0.06] bg-white/[0.01]">
-                                <h2 className="text-lg font-semibold">Public Profile</h2>
-                                <p className="text-white/30 text-xs mt-0.5">Information seen by the system.</p>
-                            </div>
-                            <div className="p-8 space-y-8">
-                                <div className="flex items-center gap-8">
-                                    <div className="relative group cursor-pointer">
-                                        <div className="w-20 h-20 rounded-3xl bg-[#c9962a] flex items-center justify-center text-2xl font-black text-[#0c0b08] shadow-2xl shadow-amber-500/20 group-hover:scale-105 transition-transform overflow-hidden">
-                                            {profile?.avatar_url ? (
-                                                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                        {activeSection === 'account' && (
+                            <>
+                                {/* Profile Card */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-white/[0.02] border border-white/[0.08] rounded-[2rem] overflow-hidden"
+                                >
+                                    <div className="px-8 py-6 border-b border-white/[0.06] bg-white/[0.01]">
+                                        <h2 className="text-lg font-semibold">Public Profile</h2>
+                                        <p className="text-white/30 text-xs mt-0.5">Information seen by the system.</p>
+                                    </div>
+                                    <div className="p-8 space-y-8">
+                                        <div className="flex items-center gap-8">
+                                            <div className="relative group cursor-pointer">
+                                                <div className="w-20 h-20 rounded-3xl bg-[#c9962a] flex items-center justify-center text-2xl font-black text-[#0c0b08] shadow-2xl shadow-amber-500/20 group-hover:scale-105 transition-transform overflow-hidden">
+                                                    {profile?.avatar_url ? (
+                                                        <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        user?.email?.[0].toUpperCase()
+                                                    )}
+                                                </div>
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl flex items-center justify-center text-[10px] uppercase font-black tracking-widest text-[#c9962a]">
+                                                    Edit
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h3 className="text-xl font-bold">{profile?.full_name || user?.email?.split('@')[0]}</h3>
+                                                <div className="flex items-center gap-2 text-white/40 text-sm">
+                                                    <FaGlobe className="text-[10px]" />
+                                                    Active account
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] uppercase tracking-widest font-bold text-white/20">Full Name</label>
+                                                <input
+                                                    type="text"
+                                                    defaultValue={profile?.full_name || ""}
+                                                    placeholder="Add your name"
+                                                    className="w-full bg-white/[0.03] border border-white/[0.1] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#c9962a]/50 transition-colors"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] uppercase tracking-widest font-bold text-white/20">Email Address</label>
+                                                <div className="w-full bg-white/[0.01] border border-white/[0.05] rounded-xl px-4 py-3 text-sm text-white/30 cursor-not-allowed">
+                                                    {user?.email}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Subscription Card */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                    className="bg-white/[0.02] border border-white/[0.08] rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6"
+                                >
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-14 h-14 rounded-2xl bg-[#c9962a]/10 border border-[#c9962a]/20 flex items-center justify-center text-[#c9962a] text-xl">
+                                            <FaCreditCard />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-bold text-lg capitalize">{profile?.plan || 'free'} Plan Member</h3>
+                                                <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-400 px-2 py-0.5 rounded-md border border-green-500/20">Active</span>
+                                            </div>
+                                            <p className="text-white/30 text-sm mt-1">Manage your payment methods and plans.</p>
+                                        </div>
+                                    </div>
+                                    <Link
+                                        href="/Pricing"
+                                        className="bg-[#c9962a] hover:bg-[#d4a535] text-[#0c0b08] text-[12px] font-bold px-6 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
+                                    >
+                                        Upgrade Plan
+                                    </Link>
+                                </motion.div>
+                            </>
+                        )}
+
+                        {activeSection === 'integrations' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <div className="bg-white/[0.02] border border-white/[0.08] rounded-[2rem] overflow-hidden">
+                                    <div className="px-8 py-6 border-b border-white/[0.06] bg-white/[0.01]">
+                                        <h2 className="text-lg font-semibold">Integrations</h2>
+                                        <p className="text-white/30 text-xs mt-0.5">Connect your dashboard to external SEO data sources.</p>
+                                    </div>
+                                    <div className="p-8">
+                                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-white/[0.02] border border-white/[0.04] rounded-2xl">
+                                            <div className="flex items-center gap-6">
+                                                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center overflow-hidden">
+                                                    <svg viewBox="0 0 24 24" className="w-8 h-8">
+                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="#4285F4" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-lg">Google Search Console</h3>
+                                                    <p className="text-white/30 text-xs mt-1">Fetch clicks, impressions, and ranking data directly.</p>
+                                                </div>
+                                            </div>
+
+                                            {gscConnected ? (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl items-center gap-2">
+                                                        <FaCheckCircle className="text-green-400 text-xs" />
+                                                        <span className="text-[11px] font-bold text-green-400 uppercase tracking-widest">Connected</span>
+                                                    </div>
+                                                    <button className="text-white/20 hover:text-red-400 text-[11px] font-bold transition-colors">Disconnect</button>
+                                                </div>
                                             ) : (
-                                                user?.email?.[0].toUpperCase()
+                                                <button
+                                                    onClick={handleConnectGSC}
+                                                    disabled={isConnectingGSC}
+                                                    className="bg-white text-black font-bold px-8 py-3 rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+                                                >
+                                                    {isConnectingGSC ? (
+                                                        <>
+                                                            <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                                                            <span className="text-sm">Connecting...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="text-sm">Connect GSC</span>
+                                                        </>
+                                                    )}
+                                                </button>
                                             )}
                                         </div>
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl flex items-center justify-center text-[10px] uppercase font-black tracking-widest text-[#c9962a]">
-                                            Edit
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h3 className="text-xl font-bold">{profile?.full_name || user?.email?.split('@')[0]}</h3>
-                                        <div className="flex items-center gap-2 text-white/40 text-sm">
-                                            <FaGlobe className="text-[10px]" />
-                                            Active account
-                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] uppercase tracking-widest font-bold text-white/20">Full Name</label>
-                                        <input
-                                            type="text"
-                                            defaultValue={profile?.full_name || ""}
-                                            placeholder="Add your name"
-                                            className="w-full bg-white/[0.03] border border-white/[0.1] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#c9962a]/50 transition-colors"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] uppercase tracking-widest font-bold text-white/20">Email Address</label>
-                                        <div className="w-full bg-white/[0.01] border border-white/[0.05] rounded-xl px-4 py-3 text-sm text-white/30 cursor-not-allowed">
-                                            {user?.email}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Subscription Card */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="bg-white/[0.02] border border-white/[0.08] rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6"
-                        >
-                            <div className="flex items-center gap-6">
-                                <div className="w-14 h-14 rounded-2xl bg-[#c9962a]/10 border border-[#c9962a]/20 flex items-center justify-center text-[#c9962a] text-xl">
-                                    <FaCreditCard />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="font-bold text-lg capitalize">{profile?.plan || 'free'} Plan Member</h3>
-                                        <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-400 px-2 py-0.5 rounded-md border border-green-500/20">Active</span>
-                                    </div>
-                                    <p className="text-white/30 text-sm mt-1">Manage your payment methods and plans.</p>
-                                </div>
-                            </div>
-                            <Link
-                                href="/Pricing"
-                                className="bg-[#c9962a] hover:bg-[#d4a535] text-[#0c0b08] text-[12px] font-bold px-6 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
-                            >
-                                Upgrade Plan
-                            </Link>
-                        </motion.div>
+                            </motion.div>
+                        )}
                     </div>
                 </div>
             </div>

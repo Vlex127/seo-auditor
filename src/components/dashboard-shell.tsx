@@ -100,21 +100,23 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
                 {/* User + logout */}
                 <div className="px-3 pb-5 border-t border-white/[0.06] pt-4">
-                    <Link href="/Settings" className="flex items-center gap-2.5 px-2 mb-3 hover:bg-white/[0.04] py-2 rounded-xl transition-all group">
-                        <div className="w-7 h-7 rounded-full bg-[#c9962a] flex items-center justify-center text-[11px] font-bold text-[#0c0b08] flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
+                    <div className="flex items-center gap-2.5 px-2 mb-3 hover:bg-white/[0.04] py-2 rounded-xl transition-all group">
+                        <Link href="/Settings" className="w-7 h-7 rounded-full bg-[#c9962a] flex items-center justify-center text-[11px] font-bold text-[#0c0b08] flex-shrink-0 hover:scale-105 transition-transform overflow-hidden">
                             {profile?.avatar_url ? (
                                 <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
                                 displayName[0]?.toUpperCase()
                             )}
-                        </div>
-                        <div className="overflow-hidden">
-                            <p className="text-[12px] font-medium text-white/80 truncate group-hover:text-white transition-colors">{user?.email ?? "—"}</p>
-                            <Link href="/Pricing" className="text-[10px] text-[#c9962a] hover:underline hover:text-[#d4a535] transition-all capitalize">
+                        </Link>
+                        <div className="overflow-hidden flex flex-col">
+                            <Link href="/Settings" className="text-[12px] font-medium text-white/80 truncate group-hover:text-white transition-colors text-left">
+                                {user?.email ?? "—"}
+                            </Link>
+                            <Link href="/Pricing" className="text-[10px] text-[#c9962a] hover:underline hover:text-[#d4a535] transition-all capitalize text-left">
                                 {profile?.plan || 'free'} plan
                             </Link>
                         </div>
-                    </Link>
+                    </div>
                     <button
                         onClick={() => logout()}
                         className="flex items-center gap-2 w-full px-3.5 py-2 rounded-xl text-[12px] text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all"

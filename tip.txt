@@ -1,1 +1,7 @@
-check from db  if a uer has avatar_url filled or nullif filled use that as avatar if null use first letter of name
+USE GOOGLE PAGE INSIGHTS API TO GET MORE INFO ABOUT THE Returns SEO, performance, accessibility, and best practices scores — exactly what your dashboard shows.
+SEO score, performance, best practices, accessibility
+Core Web Vitals (LCP, CLS, FID)
+Specific audit issues with fix recommendations
+Mobile vs desktop split
+IT WILL LOOK FOR SITE MAP SO IT CAN GET MORE INFO ABOUT THE WEBSITE
+AND ALL PAGES 
