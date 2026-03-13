@@ -4,11 +4,44 @@ import React, { useEffect, useRef } from "react";
 import { FloatingNav } from "@/components/ui/floating-navbar";
 import { FaHome, FaChartBar, FaSearch, FaCog } from "react-icons/fa";
 import { Footer } from "@/components/ui/footer";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Meteors } from "@/components/ui/meteors";
 import Link from "next/link";
 
 export default function Home() {
+  const [auditUrl, setAuditUrl] = React.useState("");
+  const [isScanning, setIsScanning] = React.useState(false);
+  const [scanResult, setScanResult] = React.useState<any>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const handleAudit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auditUrl) return;
+
+    setIsScanning(true);
+    setError(null);
+    setScanResult(null);
+
+    // Clean URL
+    const domain = auditUrl.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+
+    try {
+      const { runGuestAudit } = await import('@/app/Dashboard/audit-actions');
+      const res = await runGuestAudit(domain);
+
+      if (res.success) {
+        setScanResult({ ...res, domain });
+        // Store for signup
+        localStorage.setItem('pending_audit_domain', domain);
+      } else {
+        setError(res.error || "Could not complete audit. Please check the URL.");
+      }
+    } catch (err) {
+      setError("Failed to connect to audit engine.");
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   const navItems = [
     {
@@ -35,6 +68,27 @@ export default function Home() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden text-neutral-900">
+      <AnimatePresence>
+        {isScanning && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6"
+          >
+            <div className="w-24 h-24 relative mb-8">
+              <motion.div
+                animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                className="absolute inset-0 border-[6px] border-amber-100 border-t-amber-400 rounded-full"
+              />
+              <div className="absolute inset-0 flex items-center justify-center text-amber-500 text-2xl">
+                <FaSearch className="animate-pulse" />
+              </div>
+            </div>
+            <h2 className="text-3xl font-black uppercase tracking-tighter text-neutral-900 mb-2">Analyzing <span className="text-amber-500">{auditUrl}</span></h2>
+            <p className="text-neutral-500 max-w-sm">Our AI is fetching performance scores, SEO metrics, and accessibility audits. This takes about 10-15 seconds...</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* MAGIC UI STYLE FLOWING BACKGROUND */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-white">
         {/* The "Smoke" layer: Add a blurred, moving mesh */}
@@ -83,7 +137,8 @@ export default function Home() {
           automated fixes, and competitor analysis in seconds.
         </motion.p>
 
-        <motion.div
+        <motion.form
+          onSubmit={handleAudit}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -91,13 +146,86 @@ export default function Home() {
         >
           <input
             type="url"
+            value={auditUrl}
+            onChange={(e) => setAuditUrl(e.target.value)}
             placeholder="Enter your website URL (e.g., example.com)"
+            required
             className="flex-1 bg-transparent px-4 py-2 text-neutral-900 outline-none placeholder:text-neutral-400"
           />
-          <button className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 px-6 py-2.5 font-semibold text-white transition-all hover:opacity-90 active:scale-95 shadow-md shadow-amber-200/50">
+          <button
+            type="submit"
+            className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 px-6 py-2.5 font-semibold text-white transition-all hover:opacity-90 active:scale-95 shadow-md shadow-amber-200/50"
+          >
             Audit Now
           </button>
-        </motion.div>
+        </motion.form>
+
+        {error && (
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 text-red-500 text-sm font-medium">{error}</motion.p>
+        )}
+
+        {/* Sneak Peek Results */}
+        <AnimatePresence>
+          {scanResult && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-12 w-full max-w-4xl bg-white border border-amber-200 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden relative"
+            >
+              <div className="flex flex-col md:flex-row gap-10">
+                <div className="text-left flex-1">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-400 flex items-center justify-center text-white text-xl">
+                      <FaChartBar />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-black uppercase tracking-tighter">{scanResult.domain}</h3>
+                      <p className="text-neutral-400 text-xs font-mono">Partial Audit Results Collected</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { label: "Performance", val: scanResult.scores.performance },
+                      { label: "SEO", val: scanResult.scores.seo },
+                      { label: "Accessibility", val: scanResult.scores.accessibility },
+                      { label: "Best Practices", val: scanResult.scores.best_practices },
+                    ].map(s => (
+                      <div key={s.label} className="bg-neutral-50 px-4 py-3 rounded-2xl border border-neutral-100">
+                        <p className="text-[10px] uppercase font-bold text-neutral-400 mb-1">{s.label}</p>
+                        <p className={`text-2xl font-black ${s.val > 80 ? 'text-green-500' : s.val > 50 ? 'text-amber-500' : 'text-red-500'}`}>{s.val}%</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-8">
+                    <h4 className="text-xs uppercase font-black tracking-[0.2em] text-neutral-400 mb-4">Critical Issues Found ({scanResult.issuesCount})</h4>
+                    <div className="space-y-3">
+                      {scanResult.topIssues.map((issue: any, i: number) => (
+                        <div key={i} className="flex items-center gap-3 text-sm text-neutral-600">
+                          <div className={`w-2 h-2 rounded-full ${issue.level === 'high' ? 'bg-red-400' : 'bg-amber-400'}`} />
+                          {issue.title}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="md:w-1/3 bg-neutral-900 rounded-[2rem] p-8 flex flex-col justify-center text-center relative overflow-hidden text-white">
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-yellow-600 opacity-20" />
+                  <h4 className="text-2xl font-black uppercase tracking-tighter mb-4 relative z-10">Unlock Full Audit</h4>
+                  <p className="text-neutral-400 text-sm mb-8 relative z-10">Sign up now to get the full report, fix recommendations, and track your progress over time.</p>
+                  <Link
+                    href="/signup"
+                    className="bg-white text-neutral-900 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:scale-105 transition-all relative z-10 shadow-xl"
+                  >
+                    Claim Full Access
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Improved Dashboard mockup from previous step */}
         <motion.div

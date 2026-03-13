@@ -107,3 +107,40 @@ export async function runAudit(websiteId: string, domain: string) {
         return { error: error.message || 'Failed to complete audit' }
     }
 }
+
+export async function runGuestAudit(domain: string) {
+    try {
+        const desktopUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=https://${domain}&key=${API_KEY}&category=SEO&category=PERFORMANCE&category=ACCESSIBILITY&category=BEST_PRACTICES&strategy=desktop`
+        const desktopRes = await fetch(desktopUrl)
+        const desktopData = await desktopRes.json()
+
+        if (desktopData.error) {
+            throw new Error(desktopData.error.message || 'PageSpeed API Error')
+        }
+
+        const lighthouse = desktopData.lighthouseResult
+        const categories = lighthouse.categories
+
+        const scores = {
+            performance: Math.round(categories.performance.score * 100),
+            seo: Math.round(categories.seo.score * 100),
+            accessibility: Math.round(categories.accessibility.score * 100),
+            best_practices: Math.round(categories['best-practices'].score * 100),
+        }
+
+        const audits = lighthouse.audits
+        const opportunities = Object.values(audits)
+            .filter((audit: any) => audit.details?.type === 'opportunity' && audit.score < 1)
+            .sort((a: any) => (a.score))
+            .slice(0, 3)
+            .map((audit: any) => ({
+                title: audit.title,
+                level: audit.score < 0.5 ? 'high' : 'medium'
+            }))
+
+        return { success: true, scores, issuesCount: opportunities.length, topIssues: opportunities }
+    } catch (error: any) {
+        console.error('Guest Audit failed:', error)
+        return { error: error.message || 'Failed to complete audit' }
+    }
+}

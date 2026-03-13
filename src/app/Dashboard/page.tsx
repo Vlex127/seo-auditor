@@ -43,6 +43,27 @@ export default function Dashboard() {
 
     const activeSite = websites.find(s => s.id === selectedSiteId) || websites[0];
 
+    const checkPendingAudit = async (currentSites: any[]) => {
+        const pending = localStorage.getItem('pending_audit_domain');
+        if (pending) {
+            localStorage.removeItem('pending_audit_domain');
+            const exists = currentSites.find(s => s.domain === pending);
+            if (!exists) {
+                const res = await addWebsite(pending);
+                if (!res.error && res.data) {
+                    setWebsites(prev => [res.data, ...prev]);
+                    setSelectedSiteId(res.data.id);
+                    setIsScanning(true);
+                    await runAudit(res.data.id, pending);
+                    await loadAuditData(res.data.id);
+                    setIsScanning(false);
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
     const loadAuditData = async (siteId: string) => {
         const supabase = createClient();
         const { data: audit } = await supabase
@@ -77,7 +98,9 @@ export default function Dashboard() {
             const sites = await getWebsites();
             setWebsites(sites);
 
-            if (sites.length > 0) {
+            const handledPending = await checkPendingAudit(sites);
+
+            if (!handledPending && sites.length > 0) {
                 const initialSiteId = sites[0].id;
                 setSelectedSiteId(initialSiteId);
                 await loadAuditData(initialSiteId);
