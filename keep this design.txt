@@ -1,0 +1,356 @@
+"use client";
+
+import { motion, useInView } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+
+// ── Data ─────────────────────────────────────────────────────────────────────
+
+const issues = [
+    { dot: "bg-red-400",   text: "Missing meta descriptions on 8 pages",           tag: "High",   tagColor: "bg-red-400/10 text-red-400",    blur: false },
+    { dot: "bg-amber-400", text: "Images missing alt attributes (23 found)",        tag: "Medium", tagColor: "bg-amber-400/10 text-amber-400", blur: false },
+    { dot: "bg-green-400", text: "H1 tag hierarchy inconsistent across blog posts", tag: "Low",    tagColor: "bg-green-400/10 text-green-400", blur: false },
+    { dot: "bg-red-400",   text: "Broken internal links detected on homepage",      tag: "High",   tagColor: "bg-red-400/10 text-red-400",    blur: true, opacity: "opacity-40" },
+    { dot: "bg-amber-400", text: "Core Web Vitals: LCP above 2.5s threshold",      tag: "Medium", tagColor: "bg-amber-400/10 text-amber-400", blur: true, opacity: "opacity-20" },
+];
+
+const metrics = [
+    { label: "Performance", value: 98,  bar: "from-emerald-400 to-teal-400", chip: "Excellent",  chipColor: "bg-emerald-400/10 text-emerald-400" },
+    { label: "SEO Score",   value: 85,  bar: "from-amber-400 to-orange-400", chip: "Needs work", chipColor: "bg-amber-400/10 text-amber-400"     },
+    { label: "Practices",   value: 100, bar: "from-sky-400 to-indigo-400",   chip: "Perfect",    chipColor: "bg-sky-400/10 text-sky-300"          },
+];
+
+const cwv = [
+    { key: "LCP", value: "0.5s", good: true  },
+    { key: "FCP", value: "0.2s", good: true  },
+    { key: "CLS", value: "0.01", good: true  },
+    { key: "TTI", value: "0.5s", good: true  },
+];
+
+const sparkPts = [40, 45, 42, 55, 50, 62, 58, 70, 67, 78, 74, 85];
+
+// ── Animated counter ─────────────────────────────────────────────────────────
+
+function AnimatedNumber({ target, duration = 1200 }: { target: number; duration?: number }) {
+    const [val, setVal] = useState(0);
+    const ref = useRef<HTMLSpanElement>(null);
+    const inView = useInView(ref, { once: true });
+
+    useEffect(() => {
+        if (!inView) return;
+        const start = performance.now();
+        const tick = (now: number) => {
+            const p = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - p, 3);
+            setVal(Math.round(ease * target));
+            if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+    }, [inView, target, duration]);
+
+    return <span ref={ref}>{val}</span>;
+}
+
+// ── Score ring ────────────────────────────────────────────────────────────────
+
+function ScoreRing({ score }: { score: number }) {
+    const r = 36;
+    const circ = 2 * Math.PI * r;
+    const [offset, setOffset] = useState(circ);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const inView = useInView(containerRef, { once: true });
+
+    useEffect(() => {
+        if (!inView) return;
+        const t = setTimeout(() => setOffset(circ - (score / 100) * circ), 200);
+        return () => clearTimeout(t);
+    }, [inView, circ, score]);
+
+    return (
+        <div ref={containerRef} className="relative w-24 h-24">
+            <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90">
+                {/* Tick marks */}
+                {Array.from({ length: 36 }).map((_, i) => {
+                    const a = (i / 36) * 2 * Math.PI;
+                    const inner = r - 3, outer = r + 3;
+                    return (
+                        <line
+                            key={i}
+                            x1={48 + inner * Math.cos(a)} y1={48 + inner * Math.sin(a)}
+                            x2={48 + outer * Math.cos(a)} y2={48 + outer * Math.sin(a)}
+                            stroke="rgba(201,150,42,0.12)" strokeWidth="1"
+                        />
+                    );
+                })}
+                {/* Track */}
+                <circle cx="48" cy="48" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
+                {/* Arc */}
+                <circle
+                    cx="48" cy="48" r={r}
+                    fill="none"
+                    stroke="url(#ringGold)"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={circ}
+                    strokeDashoffset={offset}
+                    style={{ transition: "stroke-dashoffset 1.3s cubic-bezier(0.34,1.56,0.64,1)" }}
+                />
+                <defs>
+                    <linearGradient id="ringGold" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#c9962a" />
+                        <stop offset="100%" stopColor="#f0d080" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-[22px] font-bold text-white leading-none">
+                    <AnimatedNumber target={score} />
+                </span>
+                <span className="text-[8px] font-bold uppercase tracking-[0.18em] text-[#c9962a]/60 mt-0.5">score</span>
+            </div>
+        </div>
+    );
+}
+
+// ── Sparkline ─────────────────────────────────────────────────────────────────
+
+function Sparkline({ pts }: { pts: number[] }) {
+    const W = 110, H = 28;
+    const mn = Math.min(...pts), mx = Math.max(...pts);
+    const xs = pts.map((_, i) => (i / (pts.length - 1)) * W);
+    const ys = pts.map(p => H - ((p - mn) / (mx - mn + 1)) * H);
+    const line = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+    const area = `${line} L${W},${H} L0,${H} Z`;
+    return (
+        <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+            <defs>
+                <linearGradient id="sfill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#c9962a" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#c9962a" stopOpacity="0" />
+                </linearGradient>
+            </defs>
+            <path d={area} fill="url(#sfill)" />
+            <path d={line} fill="none" stroke="#c9962a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx={xs[xs.length - 1].toFixed(1)} cy={ys[ys.length - 1].toFixed(1)} r="2.5" fill="#c9962a" />
+        </svg>
+    );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export const DashboardMockup = ({ isMockup = true }: { isMockup?: boolean }) => {
+    const [pulse, setPulse] = useState(true);
+    useEffect(() => {
+        const t = setInterval(() => setPulse(p => !p), 1800);
+        return () => clearInterval(t);
+    }, []);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className={cn(
+                "relative w-full max-w-2xl flex-shrink-0 select-none",
+                isMockup ? "hidden lg:block pointer-events-none" : "block"
+            )}
+        >
+            {/* Ambient glow */}
+            <div className="absolute -inset-8 pointer-events-none">
+                <div className="absolute top-1/3 left-1/3 w-56 h-56 bg-amber-600/15 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 right-1/3 w-44 h-44 bg-orange-700/10 rounded-full blur-3xl" />
+            </div>
+
+            {/* Shell */}
+            <div className="relative rounded-[1.75rem] bg-[#0c0b08] overflow-hidden border border-white/[0.08] shadow-[0_40px_100px_rgba(0,0,0,0.7)]">
+
+                {/* Grid texture */}
+                <div
+                    className="absolute inset-0 opacity-[0.022] pointer-events-none"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(rgba(255,255,255,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.6) 1px,transparent 1px)",
+                        backgroundSize: "28px 28px",
+                    }}
+                />
+
+                {/* Gold top accent line */}
+                <div className="absolute top-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-[#c9962a]/60 to-transparent" />
+
+                {/* ── Topbar ── */}
+                <div className="relative flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+                    {/* Logo */}
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-[7px] bg-[#c9962a] flex items-center justify-center shadow-[0_0_10px_rgba(201,150,42,0.45)]">
+                            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                                <circle cx="5" cy="5" r="3.5" stroke="#0c0b08" strokeWidth="1.5" />
+                                <line x1="7.6" y1="7.6" x2="11" y2="11" stroke="#0c0b08" strokeWidth="1.5" strokeLinecap="round" />
+                            </svg>
+                        </div>
+                        <span className="text-[13px] font-bold text-[#f0d080] tracking-tight">SEO-Auditor</span>
+                    </div>
+
+                    {/* Nav */}
+                    <div className="flex gap-0.5 bg-white/[0.04] rounded-lg p-0.5">
+                        {["Overview", "Audit", "Keywords", "Backlinks"].map(item => (
+                            <span
+                                key={item}
+                                className={cn(
+                                    "text-[10px] px-2.5 py-1.5 rounded-md font-semibold transition-all",
+                                    item === "Audit"
+                                        ? "bg-[#c9962a] text-[#0c0b08]"
+                                        : "text-white/25"
+                                )}
+                            >
+                                {item}
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* Status + avatar */}
+                    <div className="flex items-center gap-1.5">
+                        <span
+                            className="w-1.5 h-1.5 rounded-full bg-emerald-400 transition-opacity duration-1000"
+                            style={{ opacity: pulse ? 1 : 0.3 }}
+                        />
+                        <span className="text-[9px] text-white/25 mr-1.5">Live</span>
+                        <div className="w-6 h-6 rounded-full bg-[#c9962a] flex items-center justify-center text-[9px] font-bold text-[#0c0b08]">
+                            VI
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Body ── */}
+                <div className="p-4 space-y-3">
+
+                    {/* URL bar */}
+                    <div className="flex items-center gap-2 bg-white/[0.025] border border-white/[0.05] rounded-xl px-3.5 py-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" style={{ boxShadow: "0 0 5px rgba(74,222,128,0.7)" }} />
+                        <span className="flex-1 font-mono text-[10px] text-white/35">https://example-website.com</span>
+                        <span className="text-[8.5px] text-white/15 uppercase tracking-widest">2m ago</span>
+                        <button className="ml-1.5 bg-[#c9962a] text-[#0c0b08] text-[9.5px] font-bold px-3 py-1.5 rounded-lg">
+                            Re-scan
+                        </button>
+                    </div>
+
+                    {/* Score + metrics */}
+                    <div className="grid grid-cols-[auto_1fr] gap-3">
+                        {/* Ring */}
+                        <div className="bg-white/[0.025] border border-[#c9962a]/20 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 min-w-[118px]">
+                            <ScoreRing score={92} />
+                            <div className="text-center">
+                                <p className="text-[8.5px] font-bold uppercase tracking-[0.18em] text-[#c9962a]/50">Overall</p>
+                                <p className="text-[8px] text-emerald-400/60 mt-0.5">↑ +6 this week</p>
+                            </div>
+                        </div>
+
+                        {/* Metric cards */}
+                        <div className="grid grid-cols-3 gap-2">
+                            {metrics.map((m, i) => (
+                                <motion.div
+                                    key={m.label}
+                                    initial={{ opacity: 0, y: 6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.15 + i * 0.08 }}
+                                    className="bg-white/[0.025] border border-white/[0.05] rounded-xl p-3"
+                                >
+                                    <p className="text-[8.5px] uppercase tracking-wider text-white/25 font-semibold mb-1.5 truncate">{m.label}</p>
+                                    <p className="text-[19px] font-bold text-white leading-none mb-2">
+                                        <AnimatedNumber target={m.value} duration={900 + i * 180} />
+                                        <span className="text-[10px] text-white/20">%</span>
+                                    </p>
+                                    <div className="h-[2px] w-full bg-white/[0.05] rounded-full overflow-hidden mb-2">
+                                        <motion.div
+                                            className={`h-full rounded-full bg-gradient-to-r ${m.bar}`}
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${m.value}%` }}
+                                            transition={{ delay: 0.5 + i * 0.1, duration: 0.9, ease: "easeOut" }}
+                                        />
+                                    </div>
+                                    <span className={`text-[7.5px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md ${m.chipColor}`}>
+                                        {m.chip}
+                                    </span>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* CWV + Sparkline */}
+                    <div className="grid grid-cols-[1fr_auto] gap-3">
+                        <div className="bg-white/[0.025] border border-white/[0.05] rounded-xl px-4 py-3">
+                            <p className="text-[8.5px] font-bold uppercase tracking-[0.18em] text-white/20 mb-2.5">Core Web Vitals</p>
+                            <div className="grid grid-cols-4 gap-1">
+                                {cwv.map(v => (
+                                    <div key={v.key} className="text-center">
+                                        <p className="text-[13px] font-bold text-white leading-none">{v.value}</p>
+                                        <p className="text-[7.5px] text-white/25 mt-0.5 uppercase tracking-widest">{v.key}</p>
+                                        <div className={cn("w-1 h-1 rounded-full mx-auto mt-1.5", v.good ? "bg-emerald-400" : "bg-red-400")} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="bg-white/[0.025] border border-white/[0.05] rounded-xl px-4 py-3 flex flex-col justify-between min-w-[140px]">
+                            <p className="text-[8.5px] font-bold uppercase tracking-[0.18em] text-white/20 mb-1">30-day trend</p>
+                            <Sparkline pts={sparkPts} />
+                            <p className="text-[8.5px] text-emerald-400 font-bold mt-1">↑ +45 pts</p>
+                        </div>
+                    </div>
+
+                    {/* Insights banner */}
+                    <div className="flex items-center gap-3 bg-[#c9962a]/[0.06] border border-[#c9962a]/20 rounded-xl px-3.5 py-2.5">
+                        <div className="w-6 h-6 rounded-lg bg-[#c9962a]/15 flex items-center justify-center flex-shrink-0">
+                            <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                                <path d="M7 1L8.5 5.5H13L9.5 8L10.5 13L7 10.5L3.5 13L4.5 8L1 5.5H5.5L7 1Z" fill="#c9962a" />
+                            </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold text-[#c9962a]">12 structural issues detected</p>
+                            <p className="text-[9.5px] text-white/30 mt-0.5">Fixing these could boost visibility by <span className="text-white/55 font-semibold">+24%</span></p>
+                        </div>
+                        <span className="text-[9px] font-bold text-[#c9962a]/50 bg-[#c9962a]/08 border border-[#c9962a]/15 px-2.5 py-1 rounded-lg whitespace-nowrap">
+                            View all →
+                        </span>
+                    </div>
+
+                    {/* Issues list */}
+                    <div className="space-y-1.5">
+                        {issues.map((issue, i) => (
+                            <div
+                                key={i}
+                                className={cn(
+                                    "flex items-center gap-3 bg-white/[0.02] border border-white/[0.04] rounded-xl px-3.5 py-2.5",
+                                    issue.opacity
+                                )}
+                                style={issue.blur ? { filter: `blur(${i === 3 ? 1.5 : 2.5}px)` } : undefined}
+                            >
+                                <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", issue.dot)} />
+                                <span className="flex-1 text-[10.5px] text-white/45 leading-snug">{issue.text}</span>
+                                <span className={cn("text-[8px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg flex-shrink-0", issue.tagColor)}>
+                                    {issue.tag}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Fade + unlock — mockup only */}
+                {isMockup && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.9 }}
+                        className="relative -mt-16 h-[92px] flex items-end justify-center pb-5"
+                        style={{ background: "linear-gradient(to bottom,transparent,#0c0b08 52%,#0c0b08)" }}
+                    >
+                        <div className="flex items-center gap-2 bg-[#c9962a]/10 border border-[#c9962a]/28 rounded-full px-5 py-2.5 backdrop-blur-sm">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#c9962a]" />
+                            <span className="text-[10.5px] font-semibold text-[#c9962a]">
+                                Sign in to unlock all 12 insights
+                            </span>
+                        </div>
+                    </motion.div>
+                )}
+            </div>
+        </motion.div>
+    );
+};

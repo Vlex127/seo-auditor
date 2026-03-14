@@ -348,7 +348,7 @@ export default function Dashboard() {
 
                 {loading && selectedSiteId ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-4">
-                        <div className="w-8 h-8 border-2 border-[#c9962a]/20 border-t-[#c9962a] rounded-full animate-spin" />
+                        <Spinner className="size-8" />
                         <p className="text-white/20 text-[11px] animate-pulse font-mono uppercase tracking-widest">Switching contexts...</p>
                     </div>
                 ) : (
@@ -360,25 +360,53 @@ export default function Dashboard() {
                             {metrics.map((m, i) => (
                                 <motion.div
                                     key={m.label}
-                                    initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.05 + i * 0.05 }}
-                                    className="rounded-2xl p-4 sm:p-5"
-                                    style={{ background: m.bg, border: `1px solid ${m.border}` }}
+                                    className="relative rounded-2xl p-4 sm:p-5 border border-white/[0.05] overflow-hidden group"
+                                    style={{ background: m.bg, borderColor: m.border }}
                                 >
-                                    <p className="text-[9px] sm:text-[10px] uppercase tracking-widest font-semibold mb-2 sm:mb-3" style={{ color: `${m.color}99` }}>{m.label}</p>
-                                    <div className="flex items-end justify-between">
-                                        <p className="text-[22px] sm:text-[28px] font-semibold text-white leading-none">
-                                            {isScanning ? '--' : m.value}<span className="text-[12px] sm:text-[14px] text-white/30">{m.unit}</span>
-                                        </p>
-                                    </div>
-                                    <div className="mt-3 h-[3px] rounded-full bg-white/[0.07]">
-                                        <motion.div
-                                            className="h-full rounded-full"
-                                            initial={{ width: 0 }}
-                                            animate={{ width: isScanning ? '100%' : `${m.value}%` }}
-                                            style={{ background: m.color }}
-                                            transition={{ duration: isScanning ? 2 : 0.5, repeat: isScanning ? 999999 : 0 }}
-                                        />
+                                    {isScanning && (
+                                        <div className="absolute inset-0">
+                                            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+                                                <motion.rect
+                                                    x="0"
+                                                    y="0"
+                                                    width="100%"
+                                                    height="100%"
+                                                    rx="16"
+                                                    fill="none"
+                                                    stroke={m.color}
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    initial={{ pathLength: 0.2, pathOffset: 0 }}
+                                                    animate={{ pathOffset: [0, 1] }}
+                                                    transition={{
+                                                        duration: 2,
+                                                        repeat: Infinity,
+                                                        ease: "linear",
+                                                    }}
+                                                />
+                                            </svg>
+                                        </div>
+                                    )}
+
+                                    <div className="relative z-10">
+                                        <p className="text-[9px] sm:text-[10px] uppercase tracking-widest font-semibold mb-2 sm:mb-3" style={{ color: `${m.color}99` }}>{m.label}</p>
+                                        <div className="flex items-end justify-between">
+                                            <p className="text-[22px] sm:text-[28px] font-semibold text-white leading-none">
+                                                {isScanning ? '--' : m.value}<span className="text-[12px] sm:text-[14px] text-white/30">{m.unit}</span>
+                                            </p>
+                                        </div>
+                                        <div className="mt-3 h-[3px] rounded-full bg-white/[0.07]">
+                                            <motion.div
+                                                className="h-full rounded-full"
+                                                initial={{ width: 0 }}
+                                                animate={{ width: isScanning ? '100%' : `${m.value}%` }}
+                                                style={{ background: m.color }}
+                                                transition={{ duration: isScanning ? 2 : 0.5, repeat: isScanning ? 999999 : 0 }}
+                                            />
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
@@ -427,7 +455,7 @@ export default function Dashboard() {
                                         <h2 className="text-[13px] font-semibold text-white">Discovered Pages</h2>
                                         <span className="text-[10px] text-[#c9962a] font-bold">{latestAudit?.raw_data?.discovered_pages?.length || 0} Total</span>
                                     </div>
-                                    <div className="max-h-[300px] overflow-y-auto divide-y divide-white/[0.04]">
+                                    <div className="max-h-[300px] overflow-y-auto divide-y divide-white/[0.04] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                         {latestAudit?.raw_data?.discovered_pages?.map((url: string, i: number) => (
                                             <div key={i} className="px-4 sm:px-6 py-3 hover:bg-white/[0.02] transition-colors group flex items-center justify-between gap-4">
                                                 <span className="text-[10px] sm:text-[11px] text-white/40 font-mono truncate flex-1">{url}</span>

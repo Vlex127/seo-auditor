@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { PiPresentationChartBold } from "react-icons/pi";
 import {
   Field,
   FieldDescription,
@@ -10,7 +11,6 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { GalleryVerticalEndIcon } from "lucide-react"
 import { login, signInWithOAuth } from "@/app/auth/actions"
 import { useSearchParams } from "next/navigation"
 
@@ -31,7 +31,7 @@ export function LoginForm({
               className="flex flex-col items-center gap-2 font-medium group"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-md shadow-amber-200/50 group-hover:scale-105 transition-transform">
-               <img  alt="logo" src ="/logo.png"/>
+                <PiPresentationChartBold />
               </div>
               <span className="sr-only">SEO-Auditor</span>
             </a>
