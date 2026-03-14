@@ -22,7 +22,7 @@ export const Footer = () => {
                         <a href="#" className="h-5 w-5 text-neutral-400 hover:text-amber-500 transition-colors">
                             <FaLinkedin />
                         </a>
-                        <a href="#" className="h-5 w-5 text-neutral-400 hover:text-amber-500 transition-colors">
+                        <a href="https://github.com/Vlex127" className="h-5 w-5 text-neutral-400 hover:text-amber-500 transition-colors">
                             <FaGithub />
                         </a>
                     </div>

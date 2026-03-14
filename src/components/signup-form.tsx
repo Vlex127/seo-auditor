@@ -32,7 +32,7 @@ export function SignupForm({
               className="flex flex-col items-center gap-2 font-medium group"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-md shadow-amber-200/50 group-hover:scale-105 transition-transform">
-                <GalleryVerticalEndIcon className="size-5" />
+                <img alt="logo" src="/logo.png" />
               </div>
               <span className="sr-only">SEO-Auditor</span>
             </a>

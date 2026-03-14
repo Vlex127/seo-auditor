@@ -11,6 +11,7 @@ import { addWebsite, getWebsites } from "./actions";
 import { runAudit } from "./audit-actions";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { Spinner } from "@/components/ui/spinner";
 
 const ScoreRing = ({ value, color }: { value: number; color: string }) => {
     const r = 28, circ = 2 * Math.PI * r;
@@ -178,8 +179,7 @@ export default function Dashboard() {
             <DashboardShell>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="flex flex-col items-center gap-4">
-                        <div className="w-12 h-12 border-2 border-[#c9962a]/20 border-t-[#c9962a] rounded-full animate-spin" />
-                        <p className="text-white/30 text-sm animate-pulse">Loading your dashboard...</p>
+                        <Spinner />
                     </div>
                 </div>
             </DashboardShell>
