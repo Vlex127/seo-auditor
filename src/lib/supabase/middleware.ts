@@ -35,25 +35,36 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/signup') &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        request.nextUrl.pathname !== '/'
-    ) {
-        // no user, potentially respond by redirecting the user to the login page
+    // All paths that are public — no login required
+    const publicPaths = [
+        '/',
+        '/login',
+        '/signup',
+        '/About',
+        '/Privacy',
+        '/Terms',
+        '/Careers',
+        '/Pricing',
+        '/Audit',
+        '/Keyword',
+        '/Backlink',
+        '/Access',
+        '/auth',
+    ]
+
+    const isPublic = publicPaths.some(p =>
+        request.nextUrl.pathname === p || request.nextUrl.pathname.startsWith(p + '/')
+    )
+
+    if (!user && !isPublic) {
+        // Protected route — redirect unauthenticated users to login
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
 
-    if (
-        user &&
-        (request.nextUrl.pathname.startsWith('/login') ||
-            request.nextUrl.pathname.startsWith('/signup') ||
-            request.nextUrl.pathname === '/')
-    ) {
+    if (user && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup'))) {
+        // Authenticated users don't need to be on login/signup — send to dashboard
         const url = request.nextUrl.clone()
         url.pathname = '/Dashboard'
         return NextResponse.redirect(url)

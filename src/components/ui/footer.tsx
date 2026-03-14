@@ -19,7 +19,7 @@ export const Footer = () => {
                         <a href="#" className="h-5 w-5 text-neutral-400 hover:text-amber-500 transition-colors">
                             <FaTwitter />
                         </a>
-                        <a href="#" className="h-5 w-5 text-neutral-400 hover:text-amber-500 transition-colors">
+                        <a href="https://www.linkedin.com/in/vincent-iwuno-309167315" className="h-5 w-5 text-neutral-400 hover:text-amber-500 transition-colors">
                             <FaLinkedin />
                         </a>
                         <a href="https://github.com/Vlex127" className="h-5 w-5 text-neutral-400 hover:text-amber-500 transition-colors">
@@ -35,7 +35,7 @@ export const Footer = () => {
                         <li><Link href="/Audit" className="hover:text-amber-500">Live Audit</Link></li>
                         <li><Link href="/Keyword" className="hover:text-amber-500">Keyword Tracker</Link></li>
                         <li><Link href="/Backlink" className="hover:text-amber-500">Backlink Analysis</Link></li>
-                        <li><Link href="Api" className="hover:text-amber-500">API Access</Link></li>
+                        <li><Link href="/Access" className="hover:text-amber-500">Access API</Link></li>
                     </ul>
                 </div>
 

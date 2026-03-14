@@ -47,8 +47,8 @@ function ScoreRing({ score }: { score: number }) {
           const a = (i / 36) * 2 * Math.PI;
           return (
             <line key={i}
-              x1={50 + (r - 4) * Math.cos(a)} y1={50 + (r - 4) * Math.sin(a)}
-              x2={50 + (r + 4) * Math.cos(a)} y2={50 + (r + 4) * Math.sin(a)}
+              x1={(50 + (r - 4) * Math.cos(a)).toFixed(2)} y1={(50 + (r - 4) * Math.sin(a)).toFixed(2)}
+              x2={(50 + (r + 4) * Math.cos(a)).toFixed(2)} y2={(50 + (r + 4) * Math.sin(a)).toFixed(2)}
               stroke="rgba(201,150,42,0.1)" strokeWidth="1"
             />
           );
